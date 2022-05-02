@@ -1,0 +1,60 @@
+---
+title: "weatherdash-tutorial"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{weatherdash-tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(weatherdash)
+```
+
+# Example Dataset
+
+```{r}
+# given example data from package 
+head(apelake)
+names(apelake)
+```
+
+# Plot Some Data
+
+Two Vars:
+
+```{r}
+graph_two(apelake, x = 'DateTime', y1 = 'Air_Temp', y2 = 'RH', y1_name = 'Air Temperature (&deg;C)', y2_name = 'Relative Humidity (%)')
+```
+
+One Var:
+```{r}
+graph_one(apelake, x = 'DateTime', y1 = 'Air_Temp', y1_name = 'Air Temperature (&deg;C)')
+
+graph_one(apelake, x = 'DateTime', y1 = 3, y1_name = 'Air Temperature (&deg;C)')
+```
+
+Wind Rose:
+
+```{r}
+wind_rose(apelake, datetime = 'DateTime', wind_spd_avg = 'Wind_Speed', wind_dir_avg = 'Wind_Dir')
+```
+
+Spike Clean:
+
+```{r}
+cln <- spike_clean(apelake, 'DateTime', 'Snow_Depth', spike_th = 10, roc_hi_th = 40, roc_low_th = 75) |> as.data.frame()
+
+graph_two(cln, x = 'DateTime', y1 = 'Air_Temp', y2 = 'Snow_Depth', y1_name = 'Air Temperature (&deg;C)', y2_name = 'Snow Depth (cm)')
+
+
+head(cln)
+```
+

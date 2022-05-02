@@ -1,0 +1,16 @@
+#' Ape Lake Station Dataframe
+#'
+#' An example dataset from the apelake station that contains hydrometerological
+#' variables for testing functions.
+#'
+#'
+#' @format A data frame with 5097 rows and 24 variables:
+#' \describe{
+#'
+#'   \item{WatYr}{year, numeric}
+#'   \item{DateTime}{year date and time of the observation, POSIXct}
+#'   \item{Air_Temp}{Air temperature, in degrees celcius}
+#'   ...
+#' }
+#' @source \url{http://www.viu-hydromet-wx.ca/}
+"apelake"
