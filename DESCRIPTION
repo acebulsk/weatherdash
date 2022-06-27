@@ -12,8 +12,15 @@ LazyData: true
 RoxygenNote: 7.1.2
 Depends: 
     R (>= 2.10)
+Imports:
+    dplyr, 
+    lubridate, 
+    plotly, 
+    rlang,
+    tsibble
 Suggests: 
     knitr,
+    shiny, 
     rmarkdown
 VignetteBuilder: knitr
 URL: https://github.com/acebulsk/weatherdash

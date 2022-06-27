@@ -2,8 +2,9 @@
 #'
 #' @param data with posixct datetime and at least one weather parameter
 #' @param x datetime as posixct
-#' @param y weather variable
-#' @param y_name pretty name to be used on plot
+#' @param y1 weather variable
+#' @param y1_name pretty name to be used on plot
+#' @param col_one colour for line ex. "rgb(0,119,187)"
 #' @param margin standard margins for plotly plot
 #'
 #' @return plotly graph
@@ -36,6 +37,8 @@ graph_one <- function(data, x, y1, y1_name, col_one = "rgb(0,119,187)",
 #' @param y2 weather variable 2
 #' @param y1_name pretty name to be used on plot
 #' @param y2_name pretty name to be used on plot
+#' @param col_one colour for line ex. "rgb(0,119,187)"
+#' @param col_two colour for line ex. "rgb(0,119,187)"
 #' @param margin standard margins for plotly plot
 #'
 #' @return plotly graph
@@ -79,25 +82,36 @@ graph_two <- function(data, x, y1, y2, y1_name, y2_name,
 #' Create Wind Rose Plot
 #'
 #' @param data dataframe with datetime, wind speed and wind dir
-#' @param datetime datetime column name (string)
-#' @param wind_spd_avg name of the wind speed column (string)
-#' @param wind_dir_avg name of the wind direction column (string)
-#' @param hrs the number of hours to create the plot over, 168 for weekly, 24 for daily
-#' @param plotTitle Title of the plot
-#' @param dirres the degree resolution of the wind rose
+#' @param datetime a string that matches the name of the datetime column name
+#' @param wind_spd_avg a string that matches the name of the wind speed column
+#' @param wind_dir_avg a string that matches the name of the wind direction column (string)
+#' @param start_time a POSIXct formatted time for begining of chart data
+#' @param end_time a POSIXct formatted time for end of chart data
+#' @param plot_title Title of the plot
+#' @param dir_res an integer of the degree resolution of the wind rose
+#' @param ws_breaks integer, the desired number of wind speed bins
+#' @param spd_unit string, wind speed unit
 
 #'
 #' @return plotly wind rose
 #' @export
 #'
-wind_rose <- function(data, datetime, wind_spd_avg, wind_dir_avg, hrs = 168, plotTitle = "", dirres = 15){
-
+wind_rose <- function(data,
+                      datetime,
+                      wind_spd_avg,
+                      wind_dir_avg,
+                      start_time = NA,
+                      end_time = NA,
+                      plot_title = "",
+                      dir_res = 15,
+                      ws_breaks = 5,
+                      spd_unit = 'km/h'){
   # account for stations that dont have ws sensors and if there have been gaps for over half the data period
-  if(all(data[, wind_spd_avg] == 0) | length(data[,wind_spd_avg]) < (hrs / 2)){
+  if(all(data[, wind_spd_avg] == 0) | all(is.na(data[, wind_spd_avg]) == T)){
     plot <- plotly::plotly_empty(type = "barpolar") |>
       plotly::layout(
         margin = list(t = 60, l = 20, r = 20),
-        annotations = list(text = plotTitle, xanchor = "centre",
+        annotations = list(text = plot_title, xanchor = "centre",
                            yref="paper",y=1,yshift=50,showarrow=FALSE,
                            font=list(size=18,color='rgb(0,0,0)')),
         xaxis = list(
@@ -121,21 +135,44 @@ wind_rose <- function(data, datetime, wind_spd_avg, wind_dir_avg, hrs = 168, plo
       )
   } else {
     # now do the actual plotting if we have data to work with
-    dirres <- dirres
-    dir.breaks <- c(-dirres/2,
-                    seq(dirres/2, 360-dirres/2, by = dirres),
-                    360+dirres/2)
-    dir.labels <- c(seq(0, 360, by = dirres))
+    dir.breaks <- c(-dir_res/2,
+                    seq(dir_res/2, 360-dir_res/2, by = dir_res),
+                    360+dir_res/2)
+    dir.labels <- c(seq(0, 360, by = dir_res))
 
-    startTime <- (Sys.time() - lubridate::hours(8))-lubridate::hours(hrs)
+    if (is.na(start_time) == T) {
+      start_time <- min(data[,datetime], na.rm = T)
+    }
+
+    if (is.na(end_time) == T) {
+      end_time <- max(data[,datetime], na.rm = T)
+    }
+
+    ws_max <- max(data[,wind_spd_avg], na.rm = T)
+
+    ws_brk_res <- round(ws_max / 5)
+
+    ws_lab <- NA
+
+    for (x in 0:(ws_breaks-1)) {
+      if (x == 0) {
+        ws_lab[x+1] <- paste0(0, '-', ws_brk_res, ' ', spd_unit)
+      } else {
+        ws1 <- ws_brk_res * x
+        ws2 <- ws_brk_res * (x + 1)
+
+        ws_lab[x+1] <- paste0(ws1, '-', ws2, " ", spd_unit)
+      }
+    }
 
     wind <- data |>
-      dplyr::filter(!!rlang::sym(datetime) >= startTime) |>
+      dplyr::filter(!!rlang::sym(datetime) >= start_time,
+                    !!rlang::sym(datetime) <= end_time) |>
       dplyr::select(!!rlang::sym(datetime), !!rlang::sym(wind_spd_avg), !!rlang::sym(wind_dir_avg)) |>
-      dplyr::mutate(ws_bin = cut(!!rlang::sym(wind_spd_avg), breaks=c(-Inf, 5, 10, 20, 30, 40, 50, Inf), labels = c("< 5 km/h", "5-10 km/h", "10-20 km/h", "20-30 hm/h", "30-40 km/h", "40-50 km/h",">50 km/h"))) |>
+      dplyr::mutate(ws_bin = cut(!!rlang::sym(wind_spd_avg), breaks=ws_breaks, labels = ws_lab)) |>
       dplyr::mutate(wd_bin = cut(!!rlang::sym(wind_dir_avg), breaks = dir.breaks, labels = dir.labels)) |>
       dplyr::group_by(wd_bin, ws_bin) |>
-      dplyr::summarise(Freq=(dplyr::n()/hrs)*100) |>
+      dplyr::summarise(Freq=(dplyr::n()/nrow(data))*100) |>
       dplyr::arrange(ws_bin)
 
     plot <- plotly::plot_ly(wind, type = "barpolar", hovertemplate = paste('Freq (%): %{r:.2f}<br>Dir: %{theta}\u00b0;'), colors = c("#4575B4", "#91BFDB", "#E0F3F8", "#FEE090", "#FC8D59", "#D73027")) |>
@@ -145,7 +182,7 @@ wind_rose <- function(data, datetime, wind_spd_avg, wind_dir_avg, hrs = 168, plo
         paper_bgcolor = "#f5f5f5",
         autosize = TRUE,
         margin = list(l = 10, r = 10),
-        annotations = list(text = plotTitle, xanchor = "centre",
+        annotations = list(text = plot_title, xanchor = "centre",
                            yref="paper",y=1,yshift=50,showarrow=FALSE,
                            font=list(size=18,color='rgb(0,0,0)')),
         xaxis = list(

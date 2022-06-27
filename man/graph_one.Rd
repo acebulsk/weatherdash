@@ -18,11 +18,13 @@ graph_one(
 
 \item{x}{datetime as posixct}
 
+\item{y1}{weather variable}
+
+\item{y1_name}{pretty name to be used on plot}
+
+\item{col_one}{colour for line ex. "rgb(0,119,187)"}
+
 \item{margin}{standard margins for plotly plot}
-
-\item{y}{weather variable}
-
-\item{y_name}{pretty name to be used on plot}
 }
 \value{
 plotly graph

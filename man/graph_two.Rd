@@ -29,6 +29,10 @@ graph_two(
 
 \item{y2_name}{pretty name to be used on plot}
 
+\item{col_one}{colour for line ex. "rgb(0,119,187)"}
+
+\item{col_two}{colour for line ex. "rgb(0,119,187)"}
+
 \item{margin}{standard margins for plotly plot}
 }
 \value{

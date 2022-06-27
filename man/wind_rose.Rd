@@ -6,25 +6,37 @@
 \usage{
 wind_rose(
   data,
+  datetime,
   wind_spd_avg,
-  wind_dir_avg_avg,
-  hrs = 168,
-  plotTitle = "",
-  dirres = 15
+  wind_dir_avg,
+  start_time = NA,
+  end_time = NA,
+  plot_title = "",
+  dir_res = 15,
+  ws_breaks = 5,
+  spd_unit = "km/h"
 )
 }
 \arguments{
 \item{data}{dataframe with datetime, wind speed and wind dir}
 
-\item{wind_spd_avg}{name of the wind speed column}
+\item{datetime}{a string that matches the name of the datetime column name}
 
-\item{wind_dir_avg_avg}{name of the wind direction column}
+\item{wind_spd_avg}{a string that matches the name of the wind speed column}
 
-\item{hrs}{the number of hours to create the plot over, 168 for weekly, 24 for daily}
+\item{wind_dir_avg}{a string that matches the name of the wind direction column (string)}
 
-\item{plotTitle}{Title of the plot}
+\item{start_time}{a POSIXct formatted time for begining of chart data}
 
-\item{dirres}{the degree resolution of the wind rose}
+\item{end_time}{a POSIXct formatted time for end of chart data}
+
+\item{plot_title}{Title of the plot}
+
+\item{dir_res}{an integer of the degree resolution of the wind rose}
+
+\item{ws_breaks}{integer, the desired number of wind speed bins}
+
+\item{spd_unit}{string, wind speed unit}
 }
 \value{
 plotly wind rose
