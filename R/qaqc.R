@@ -12,8 +12,6 @@
 #' @return cleaned dataframe
 #' @export
 #'
-#' @example
-#' spike_clean(apelake, 'DateTime', 'Snow_Depth', spike_th = 10, roc_hi_th = 40, roc_low_th = 75)
 spike_clean <- function(data, datetime, snow, spike_th, roc_hi_th, roc_low_th) {
   data <- tsibble::as_tsibble(data, index = !!rlang::sym(datetime)) |>
     tsibble::fill_gaps() |>
